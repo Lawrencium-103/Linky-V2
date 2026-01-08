@@ -20,13 +20,14 @@ BYPASS_MODE = os.getenv("BYPASS_DATABASE", "false").lower() == "true"
 
 # Initialize Supabase client
 try:
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-    # Test connection
-    if not BYPASS_MODE:
-        supabase.table("access_codes").select("code").limit(1).execute()
+    if SUPABASE_URL and SUPABASE_KEY:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    else:
+        # If keys are missing (e.g. during build), default to bypass
+        raise ValueError("Supabase keys missing")
 except Exception as e:
-    print(f"⚠️ Supabase connection failed: {str(e)}")
-    print("🔄 Enabling BYPASS_MODE for testing...")
+    print(f"⚠️ Supabase init warning: {str(e)}")
+    print("🔄 Enabling BYPASS_MODE (will attempt connection again when needed)...")
     BYPASS_MODE = True
 
 # In-memory storage for bypass mode
