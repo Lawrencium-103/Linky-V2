@@ -10,3 +10,4 @@ supabase
 geocoder
 pytz
 timezonefinder
+watchdog
