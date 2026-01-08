@@ -1,0 +1,12 @@
+[app]
+name = "linky-app"
+entrypoint = "streamlit run app.py --server.port 8080 --server.address 0.0.0.0"
+
+[build]
+type = "python"
+version = "3.9"
+pip_packages = ["requirements.txt"]
+
+[resources]
+memory = "2GB"
+cpu = "1.0"

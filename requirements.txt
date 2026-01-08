@@ -1,0 +1,12 @@
+streamlit
+langgraph
+langchain
+langchain-core
+requests
+pydantic
+typing_extensions
+python-dotenv
+supabase
+geocoder
+pytz
+timezonefinder
