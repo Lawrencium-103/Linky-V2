@@ -294,8 +294,6 @@ with st.container():
                 help="Choose the voice and perspective"
             )
             
-            content_type = st.multiselect(
-                "CONTENT TYPE",
                 options=[
                     "News Breakdown",
                     "Philosophical Essay",
@@ -305,6 +303,13 @@ with st.container():
                 ],
                 default=["News Breakdown"],
                 help="Select one or more formats"
+            )
+
+            target_region = st.selectbox(
+                "TARGET AUDIENCE REGION",
+                options=["Global (International)", "North America (US/CA)", "Europe (EU/UK)", "Asia Pacific", "Local (My Location)"],
+                index=0,
+                help="Where is your target audience located?"
             )
         
         with col2:
@@ -370,6 +375,7 @@ if generate_clicked:
             "target_word_count": target_word_count,
             "engagement_level": engagement_level,
             "narrative_patterns": narrative_patterns,
+            "target_region": target_region, # Capture region
             "creativity_level": creativity_level # Capture current slider value
         })
         
@@ -388,9 +394,13 @@ if generate_clicked:
                     "target_word_count": target_word_count,
                     "engagement_level": engagement_level,
                     "narrative_patterns": narrative_patterns,
-                    "creativity_level": creativity_level, # Pass to workflow
+                    "engagement_level": engagement_level,
+                    "narrative_patterns": narrative_patterns,
+                    "creativity_level": creativity_level,
+                    "target_region": target_region, # Pass to workflow
+                    "user_country": st.session_state.location_data.get("country_code", "XX"), # Keep location for reference
                     "latest_news_and_stats": None,
-                    "source_links": [], # Initialize source links
+                    "source_links": [],
                     "key_insights": None,
                     "viral_elements": None,
                     "sentiment_analysis": None,
@@ -399,6 +409,10 @@ if generate_clicked:
                     "status_message": None,
                     "error_message": None
                 }
+                
+                # Check for persistence warning
+                if database.BYPASS_MODE:
+                    st.toast("⚠️ Demo Mode: Database disconnected. Stats won't save on refresh.", icon="⚠️")
                 
                 # Execute workflow
                 step = 0

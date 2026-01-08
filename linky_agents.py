@@ -23,11 +23,12 @@ class LinkyState(TypedDict):
     custom_content: Optional[str]
     tone: str
     content_type: List[str]
-    target_word_count: int  # Changed from content_length
+    target_word_count: int
     engagement_level: str
     narrative_patterns: List[str]
-    creativity_level: float # New: Temperature setting
-    creativity_level: float # New: Temperature setting
+    creativity_level: float
+    target_region: str # New: Target Audience Region
+    user_country: Optional[str]
     
     latest_news_and_stats: Optional[str]
     source_links: List[dict]
@@ -42,10 +43,87 @@ class LinkyState(TypedDict):
 
 def retrieve_information(state: LinkyState) -> LinkyState:
     """
-    Retrieve relevant news, stats, and trends for the topic.
+    Retrieve relevant news, stats, and trends based on TARGET REGION.
     """
-    # ... (existing code unchanged, abbreviated)
-    return state
+    try:
+        topic = state["topic"]
+        region = state.get("target_region", "Global (International)")
+        user_country = state.get("user_country", "us").lower()
+        
+        state["status_message"] = f"Scanning news for {region} audience..."
+        
+        # Determine query parameters based on region
+        api_country = None # Default to None (Global/Everything)
+        
+        if "Local" in region:
+            api_country = user_country
+        elif "North America" in region:
+            api_country = "us"
+        elif "Europe" in region:
+            api_country = "gb" # Proxy for EU in NewsAPI free tier (often limited)
+        # Global/Asia/etc will use 'everything' endpoint or no country restriction
+        
+        # If no API keys, skip real retrieval
+        if not NEWS_API_KEY and not GNEWS_API_KEY:
+            state["latest_news_and_stats"] = "No live news access configured. Using general knowledge."
+            state["source_links"] = []
+            return state
+
+        combined_info = []
+        source_links = []
+        
+        # 1. NewsAPI
+        if NEWS_API_KEY:
+            try:
+                if api_country:
+                    # Specific country search
+                    url = f"https://newsapi.org/v2/top-headlines?q={topic}&country={api_country}&apiKey={NEWS_API_KEY}"
+                    response = requests.get(url, timeout=5)
+                    
+                    # Fallback to everything if strict country search fails
+                    if response.status_code == 200 and response.json().get("totalResults", 0) == 0:
+                        url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=relevancy&apiKey={NEWS_API_KEY}"
+                        response = requests.get(url, timeout=5)
+                else:
+                    # Global search (Everything)
+                    url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=relevancy&apiKey={NEWS_API_KEY}"
+                    response = requests.get(url, timeout=5)
+
+                if response.status_code == 200:
+                    data = response.json()
+                    articles = data.get("articles", [])[:4] # Get top 4
+                    for article in articles:
+                        combined_info.append(f"- {article['title']} ({article['source']['name']})")
+                        if article.get("url"):
+                            source_links.append({"title": article['title'], "url": article['url']})
+            except Exception as e:
+                print(f"NewsAPI error: {e}")
+
+        # 2. GNews API (Fallback/Supplement)
+        if GNEWS_API_KEY and len(combined_info) < 2:
+            try:
+                country_param = f"&country={api_country}" if api_country else ""
+                url = f"https://gnews.io/api/v4/search?q={topic}{country_param}&lang=en&max=3&apikey={GNEWS_API_KEY}"
+                response = requests.get(url, timeout=5)
+                if response.status_code == 200:
+                    data = response.json()
+                    for article in data.get("articles", [])[:3]:
+                        combined_info.append(f"- {article['title']} ({article['source']['name']})")
+                        if article.get("url"):
+                            source_links.append({"title": article['title'], "url": article['url']})
+            except Exception as e:
+                print(f"GNews error: {e}")
+        
+        state["latest_news_and_stats"] = "\n".join(combined_info) if combined_info else "No specific recent news found. Using general knowledge."
+        state["source_links"] = source_links
+        state["status_message"] = f"Found {len(combined_info)} relevant sources ({region})"
+        
+        return state
+
+    except Exception as e:
+        state["error_message"] = f"Error retrieving info: {str(e)}"
+        state["latest_news_and_stats"] = "Error fetching news."
+        return state
 
 
 def analyze_content(state: LinkyState) -> LinkyState:
