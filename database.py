@@ -38,6 +38,34 @@ _bypass_storage = {
     "posts": []
 }
 
+STORAGE_FILE = "local_storage.json"
+
+def _load_storage():
+    import json
+    global _bypass_storage
+    if os.path.exists(STORAGE_FILE):
+        try:
+            with open(STORAGE_FILE, "r") as f:
+                data = json.load(f)
+                # Merge with default to ensure required keys exist
+                for key in _bypass_storage:
+                    if key in data:
+                        _bypass_storage[key] = data[key]
+        except Exception as e:
+            print(f"Error loading local storage: {e}")
+
+def _save_storage():
+    import json
+    try:
+        with open(STORAGE_FILE, "w") as f:
+            json.dump(_bypass_storage, f)
+    except Exception as e:
+        print(f"Error saving local storage: {e}")
+
+# Load initial storage
+if BYPASS_MODE:
+    _load_storage()
+
 
 def validate_access_code(code: str) -> bool:
     """
@@ -186,6 +214,7 @@ def increment_metric(user_id: str, metric_name: str, increment: int = 1) -> bool
             # In bypass mode, update in-memory storage
             metrics = get_user_metrics(user_id)
             metrics[metric_name] = metrics.get(metric_name, 0) + increment
+            _save_storage()
             return True
         
         # Get current metrics
@@ -226,6 +255,7 @@ def save_post(user_id: str, content: str, word_count: int) -> bool:
                 "word_count": word_count
             })
             increment_metric(user_id, "posts_generated")
+            _save_storage()
             return True
         
         post_data = {

@@ -18,10 +18,12 @@ REQUIRE_ACCESS_CODE = os.getenv("REQUIRE_ACCESS_CODE", "true").lower() == "true"
 def get_user_id() -> str:
     """
     Get or create a unique user ID for the current session.
-    
-    Returns:
-        User ID string
+    For BYPASS_MODE, return a stable local ID to preserve metrics across refreshes.
     """
+    # If in bypass database mode, use a stable ID for local development testing
+    if os.getenv("BYPASS_DATABASE", "false").lower() == "true":
+        return "LOCAL_DEVELOPER_USER"
+
     if "user_id" not in st.session_state:
         # Generate a unique session-based user ID
         import uuid
@@ -116,7 +118,7 @@ def show_access_code_screen():
     # Otherwise show access code screen
     st.markdown("""
     <div style="text-align: center; padding: 3rem 1rem;">
-        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🔗 Linky</h1>
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🔗 LinkyGen</h1>
         <p style="font-size: 1.2rem; color: #888; margin-bottom: 2rem;">
             AI-Powered LinkedIn Content Generator
         </p>
@@ -176,7 +178,7 @@ def show_email_collection_screen():
     """
     st.markdown("""
     <div style="text-align: center; padding: 3rem 1rem;">
-        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🔗 Linky</h1>
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🔗 LinkyGen</h1>
         <p style="font-size: 1.2rem; color: #888; margin-bottom: 2rem;">
             AI-Powered LinkedIn Content Generator
         </p>
