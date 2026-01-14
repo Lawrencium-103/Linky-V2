@@ -1,14 +1,14 @@
-# Linky - AI-Powered LinkedIn Content Generator
+# LinkyGen - AI-Powered LinkedIn Content Generator
 
-![Linky Logo](https://img.shields.io/badge/Linky-AI%20Content%20Engine-0077B5?style=for-the-badge)
+![LinkyGen Logo](https://img.shields.io/badge/LinkyGen-AI%20Content%20Engine-0077B5?style=for-the-badge)
 
 ## Overview
 
-Linky is an intelligent LinkedIn content generation engine that produces viral, engaging, and unique posts based on user input and real-time data. Built with LangGraph orchestration and powered by advanced LLMs via OpenRouter.
+LinkyGen is an intelligent LinkedIn content generation engine that produces viral, engaging, and unique posts based on user input and real-time data. Built with LangGraph orchestration and powered by advanced LLMs via OpenRouter.
 
 ## Brand Identity
 
-- **Name**: Linky
+- **Name**: LinkyGen
 - **Essence**: Intelligent Connection, Effortless Influence, Narrative Impact, Data-Driven Storytelling
 - **Color Palette**:
   - Primary Blue: `#0077B5` (Main branding, CTAs)
@@ -80,7 +80,7 @@ linky_app/
 
 ## Anti-Slop Principles
 
-Linky adheres to strict quality standards:
+LinkyGen adheres to strict quality standards:
 - No em-dashes
 - Varied sentence structure
 - Cohesive and self-explanatory content

@@ -133,7 +133,7 @@ def show_access_code_screen():
                     padding: 2rem; border-radius: 15px; text-align: center; margin-bottom: 2rem;">
             <h2 style="color: white; margin: 0;">Enter Access Code</h2>
             <p style="color: rgba(255,255,255,0.9); margin-top: 0.5rem;">
-                Enter your 10-character access code to unlock Linky
+                Enter your 10-character access code to unlock LinkyGen
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -146,10 +146,10 @@ def show_access_code_screen():
             label_visibility="collapsed"
         )
         
-        if st.button("🚀 Unlock Linky", use_container_width=True, type="primary"):
+        if st.button("🚀 Unlock LinkyGen", use_container_width=True, type="primary"):
             if access_code:
                 if authenticate_with_code(access_code.upper()):
-                    st.success("✅ Access granted! Welcome to Linky!")
+                    st.success("✅ Access granted! Welcome to LinkyGen!")
                     st.rerun()
                 else:
                     st.error("❌ Invalid access code. Please try again.")
@@ -236,7 +236,7 @@ def show_email_collection_screen():
                 if st.button("Unlock Now", key="unlock_after_email"):
                     if access_code:
                         if authenticate_with_code(access_code.upper()):
-                            st.success("✅ Welcome back to Linky!")
+                            st.success("✅ Welcome back to LinkyGen!")
                             st.rerun()
                         else:
                             st.error("❌ Invalid code. Check your email.")
@@ -247,7 +247,7 @@ def show_email_collection_screen():
         st.info("""
         **Already have an access code?**
         
-        Enter it above to unlock Linky immediately!
+        Enter it above to unlock LinkyGen immediately!
         """)
 
 
@@ -260,7 +260,7 @@ def show_usage_limit_warning():
     
     You've used all 3 free content generations. 
     
-    To continue using Linky, please enter an access code or subscribe.
+    To continue using LinkyGen, please enter an access code or subscribe.
     """)
     
     with st.expander("Enter Access Code"):

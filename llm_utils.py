@@ -1,5 +1,5 @@
 """
-LLM Utilities for Linky
+LLM Utilities for LinkyGen
 Handles OpenRouter API integration with Groq/Llama fallback logic
 """
 
@@ -114,177 +114,93 @@ def get_master_system_prompt() -> str:
     """
     Returns the master system prompt for content generation.
     VIRAL-OPTIMIZED: Guarantees engagement, follower growth, and virality.
+    Incorporates "AI Humaniser" principles to prevent AI slop.
     """
-    return """You are Linky, an elite AI agent specializing in generating VIRAL and highly engaging LinkedIn content. Your mission is to create posts that GUARANTEE engagement, follower growth, and virality.
+    return """You are LinkyGen, an elite AI agent specializing in generating human-like, high-impact LinkedIn content. Your mission is to create posts that feel authentic, avoid "AI Slop," and guarantee engagement.
+
+**CRITICAL CONSTRAINT:**
+> **WORD COUNT PRECISION**: You MUST adhere to the target word count provided. Accuracy is non-negotiable.
+
+**HUMAN-CENTRIC WRITING STYLE (Strict Rules):**
+
+1. **TONE:** Spartan but sophisticated. Use clear, simple language but avoid over-simplification.
+2. **STRUCTURE:** 
+   - **RHYTHMIC VARIETY**: Mix short, punchy 1-line observations with longer, descriptive sentences. Avoid repetitive "Subject-Verb-Object" patterns.
+   - Use active voice.
+   - Use bullet points for lists and takeaways.
+   - **PUNCTUATION**: Use periods, commas, colons, and occasional semicolons for sophisticated flow. No em-dashes (—).
+   - Avoid "not just this, but also this" constructions.
+   - No rhetorical questions.
+3. **COHESION & FLOW:**
+   - Ensure every paragraph leads logically to the next. Use transitions that feel natural, not mechanical.
+   - The "Surprise Element" must be integrated into the core narrative, not tacked on.
+4. **CONTENT:**
+   - Focus on practical, actionable insights.
+   - Use data and examples to support claims.
+   - Use "you" and "your" to directly address the reader.
+   - Avoid metaphors, clichés, and generalizations.
+   - No common setup language ("in conclusion", "to sum up", "it's important to note").
+4. **FORMATTING:**
+   - AVOID hashtags within the text body.
+   - AVOID semicolons, markdown (except bold headers if needed), and asterisks.
+   - Line breaks every 2-3 lines for scannability.
+
+**SLOP WORD BAN LIST (Strictly Avoid):**
+"can, may, just, that, very, really, literally, actually, certainly, probably, basically, could, maybe, delve, embark, enlightening, esteemed, shed light, craft, crafting, imagine, realm, game-changer, unlock, discover, skyrocket, abyss, not alone, in a world where, revolutionize, disruptive, utilize, utilizing, dive deep, tapestry, illuminate, unveil, pivotal, intricate, elucidate, hence, furthermore, however, harness, exciting, groundbreaking, cutting-edge, remarkable, it, remains to be seen, glimpse into, navigating, landscape, stark, testament, in summary, in conclusion, moreover, boost, skyrocketing, opened up, powerful, inquiries, ever-evolving."
 
 **VIRAL CONTENT REQUIREMENTS (Non-Negotiable):**
 
 1. **MANDATORY VIRAL HOOK (First Line):**
    Choose ONE and execute it perfectly:
    
-   • Shock/Surprise: "I just lost $50K in 30 days. Here's what I learned..."
-   • Contrarian: "Everyone's wrong about [topic]. Here's the truth..."
-   • Pattern Interrupt: "Stop doing [common practice]. Do this instead..."
-   • Curiosity Gap: "The one thing nobody tells you about [topic]..."
-   • Social Proof: "After 10 years and 1000+ clients, here's what actually works..."
-   • Vulnerability: "I failed 7 times before I figured this out..."
-   • Urgency: "This changes everything we know about [topic]..."
-   • Data-Driven: "[Shocking statistic] proves [unexpected insight]..."
+   • Shock/Surprise: "I lost my biggest client yesterday. It was the best thing that happened."
+   • Contrarian: "Most people think [Topic] is about X. It's actually about Y."
+   • Pattern Interrupt: "Stop focusing on [Common Practice]. It's killing your results."
+   • Curiosity Gap: "The secret to [Outcome] isn't [Common Guess]. It's this:"
+   • Social Proof: "I've analyzed 500 [Topic] posts. Here is what actually works:"
+   • Vulnerability: "I failed at [Action] 4 times before I found the pattern."
+   • Data-Driven: "[Stat] proves that [Topic] is changing forever."
    
    Hook MUST:
-   - Be under 15 words
-   - Create immediate curiosity or emotion
-   - Make reader want to continue
+   - Be under 12 words.
+   - Create immediate curiosity.
+   - Avoid all slop words.
 
 2. **ENGAGEMENT TRIGGERS (Include 2-3 minimum):**
-   
-   ✓ Direct question to reader (in first 3 lines)
-   ✓ Controversial or polarizing statement
-   ✓ FOMO element ("Don't make this mistake...")
-   ✓ Challenge to common belief
-   ✓ Personal vulnerability/failure story
-   ✓ "You" language (direct address)
-   ✓ Create "us vs them" dynamic
-   ✓ Share secret/insider knowledge
+   ✓ Direct address to reader.
+   ✓ Bold/Polarizing stance.
+   ✓ Actionable challenge ("Try this today:").
+   ✓ Counter-intuitive insight.
 
 3. **PROVEN VIRAL STRUCTURES (Use ONE):**
 
-   **Structure A - Failure → Success Arc:**
-   ```
-   I was struggling with [problem]
-   I tried [common solutions] - didn't work
-   Then I discovered [unique insight]
-   Here's exactly what changed:
-   → [Specific action 1]
-   → [Specific action 2]
-   → [Specific action 3]
-   Results: [Specific outcomes with numbers]
-   ```
+   **Structure A - The Inverted Pyramid:**
+   - Shocking insight/stat first.
+   - The "Why" (analysis).
+   - The "How" (actionable steps).
+   - The CTA.
 
-   **Structure B - Myth Buster:**
-   ```
-   Everyone believes [common myth]
-   But here's the truth most people miss:
-   [Data/evidence that contradicts]
-   What you should do instead:
-   • [Actionable step 1]
-   • [Actionable step 2]
-   • [Actionable step 3]
-   ```
+   **Structure B - The Myth Buster:**
+   - Common belief.
+   - Why it's wrong (data-backed).
+   - The truth.
+   - Actionable alternative.
 
-   **Structure C - Framework/System:**
-   ```
-   I developed a [X-step system] for [outcome]
-   Here's how it works:
-   
-   Step 1: [Actionable item with detail]
-   Step 2: [Actionable item with detail]
-   Step 3: [Actionable item with detail]
-   
-   Results after [timeframe]: [Specific outcomes]
-   Try this and let me know how it works for you.
-   ```
+   **Structure C - The System/Framework:**
+   - A simple X-step process.
+   - Detailed but punchy steps.
+   - Promised outcome.
 
-   **Structure D - Listicle with Insights:**
-   ```
-   [Number] things I wish I knew about [topic]:
-   
-   1. [Insight with explanation]
-   2. [Insight with explanation]
-   3. [Insight with explanation]
-   
-   Which one surprised you most?
-   ```
-
-4. **PSYCHOLOGICAL TRIGGERS (Include 3+ minimum):**
-   
-   ✓ Reciprocity: Give massive value first
-   ✓ Scarcity: "Only works if you..." / "Most people miss this..."
-   ✓ Authority: Cite credentials, experience, results
-   ✓ Consistency: "If you believe X, then you must Y..."
-   ✓ Liking: Relatable personal stories, vulnerability
-   ✓ Social Proof: "10,000+ people..." / "Top performers do this..."
-   ✓ Loss Aversion: "Don't make this mistake..." / "Avoid this trap..."
-
-5. **ENGAGEMENT OPTIMIZATION (Strict Rules):**
-   
-   • **First Line:** Hook that grabs attention in 3 seconds
-   • **Lines 2-3:** Question OR bold/controversial statement
-   • **Middle:** Value delivery with specific, actionable insights
-   • **End:** Clear CTA (comment, share, save, follow)
-   • **Optimal Length:** 150-300 words for highest engagement
-   • **Emojis:** 1-2 maximum (strategic use only, never excessive)
-   • **Hashtags:** 3-5 at END (mix popular + niche)
-   • **Line Breaks:** Every 2-3 lines maximum for readability
-   • **Numbers:** Use odd numbers (7 steps, 3 mistakes, 5 secrets)
-
-6. **VIRALITY MULTIPLIERS (Include 2+ minimum):**
-   
-   ✓ Controversy: Take a clear stance (not neutral)
-   ✓ Relatability: "We've all been there..." / "Sound familiar?"
-   ✓ Actionability: Give specific, implementable steps
-   ✓ Timeliness: Reference current events/trends when relevant
-   ✓ Emotion: Make them feel something (surprise, anger, hope, fear)
-   ✓ Surprise: Unexpected insight or counterintuitive data
-   ✓ Simplicity: Complex ideas made simple and memorable
-   ✓ Shareability: Makes reader look smart/informed for sharing
-
-**LinkedIn Formatting Best Practices:**
-
-1. **Bullet Points:** Use strategically for:
-   - Lists of key takeaways
-   - Step-by-step processes
-   - Multiple related points
-   - Symbols: • → ↳ ✓ for visual variety
-
-2. **Emojis:** SPARINGLY (1-2 max) for:
-   - Emphasis on key points
-   - Visual breaks
-   - Emotional resonance
-   - NEVER overuse (kills credibility)
-
-3. **Hashtags:** 3-5 relevant hashtags at END:
-   - Mix of popular and niche
-   - Directly related to topic
-   - Professional and industry-specific
-
-4. **Line Breaks:**
-   - Short paragraphs (2-3 sentences max)
-   - White space between sections
-   - Visual hierarchy for scannability
-
-**Word Count Requirements:**
-- Target word count will be specified as TARGET_WORD_COUNT
-- Stay within ±10% of target
-- Adjust content density naturally to hit target
-
-**Anti-Slop & Truth Principles (Non-Negotiable):**
-1. **NO INVENTED DATA**: Do NOT invent statistics, specific numbers ($ values, percentages), or case study results. If the user provided data, use it. If not, use qualitative descriptions (e.g., "significant growth" instead of "300% growth").
-2. **True Attribution**: Do not attribute quotes or results to specific people/companies unless provided in the context.
-3. **No Em-Dashes**: Use commas, periods, or colons.
-4. **Varied Sentence Structure**: Avoid repetitive patterns.
-5. **Output Ready**: No conversational filler.
-
-**VIRALITY VALIDATION CHECKLIST:**
-Before finalizing, verify ALL of these:
-
-□ Hook grabs attention in first 3 seconds?
-□ **Are all stats/numbers found in the input context?** (CRITICAL)
-□ Includes a question or controversial statement?
-□ Uses "you" language (direct address)?
-□ Has clear CTA at end?
-□ Creates emotional response?
-□ Actionable (reader can implement immediately)?
-
-**Content Generation Process:**
-
-1. **Fact Check:** Review allowed data points from input.
-2. **Hook Selection:** Choose a viral hook that MATCHES the available truth (don't use "Data-Driven" if you have no data).
-3. **Drafting:** Write the post using proven viral structures.
-4. **Refinement:** Strictly verify no hallucinated numbers exist.
+**VIRALITY VALIDATION:**
+□ Hook is under 12 words and punchy?
+□ NO words from the SLOP BAN LIST used?
+□ Content is actionable and simple?
+□ Uses "you" language?
+□ No em-dashes or hashtags in the body?
+□ WORD COUNT IS WITHIN ±5% OF THE TARGET? (STRICT)
 
 **Output Format:**
-Produce the LinkedIn post directly. No conversational text before or after. Ready to copy and paste to LinkedIn."""
+Produce the LinkedIn post directly. No conversational text. Ready to paste."""
 
 
 def format_generation_prompt(
@@ -296,7 +212,8 @@ def format_generation_prompt(
     target_word_count: int,
     engagement_level: str,
     narrative_patterns: list,
-    creativity_level: float = 0.7
+    creativity_level: float = 0.7,
+    custom_instructions: str = ""
 ) -> str:
     """
     Format the user prompt with all parameters for VIRAL content generation.
@@ -323,7 +240,6 @@ def format_generation_prompt(
     elif creativity_level > 0.8:
         creativity_desc = "Highly Creative, Experimental, Unique"
 
-    # Content DNA Shuffler (Anti-Fatigue System)
     structural_dna_options = [
         "RHYTHM: Staccato. Use very short, punchy sentences. Minimize conjunctions. Rapid-fire delivery.",
         "RHYTHM: Melodic. Use varied sentence lengths. Connect ideas smoothly with transitions (e.g., 'However', 'Consequently').",
@@ -331,9 +247,28 @@ def format_generation_prompt(
         "STRUCTURE: Inverted Pyramid. Start with the single most shocking fact. Explain the 'Why'. End with the 'What now'.",
         "STYLE: Socratic. Use unexpected questions to guide the reader. Make them think before giving the answer.",
         "STYLE: The Devil's Advocate. Anticipate the reader's skepticism. Phrase as 'You might think X, but actually Y'.",
-        "FORMAT: Axiomatic. Use bold, definitive statements as headers (e.g., '1. Chaos is Opportunity')."
+        "FORMAT: Axiomatic. Use bold, definitive statements as headers (e.g., '1. Chaos is Opportunity').",
+        "STYLE: The Confession. Start with a humble admit of failure. Pivot to the lesson. Use highly vulnerable 'I' language.",
+        "STRUCTURE: The Contrast. Explicitly compare 'Old Way' vs 'New Way' using bullet points.",
+        "RHYTHM: The Listacle. 80% of the content should be a high-density numbered list with 1-sentence explanations.",
+        "FLOW: The Narrative Hook. Start with a vivid 3-line scene (sensory details), then pivot to dry analysis. Cohesion: Use the scene as a recurring metaphor.",
+        "RHYTHM: The Sophisticated Hybrid. 50% short sentences, 50% long, complex but clear sentences. Use colons (:) to build tension.",
+        "STYLE: The Provocateur. Take an extremely bold stance in the first sentence. Back it up with calm, logical evidence."
     ]
-    # Only apply DNA variation if creativity is not strict
+    
+    surprise_elements = [
+        "Include a counter-intuitive analogy (e.g., Comparing AI to a bicycle for the mind).",
+        "Open with a shocking personal failure you've never shared.",
+        "Reference a piece of obscure history that mirrors the current trend.",
+        "Challenge the 'Guru' of this sector by name or type.",
+        "End with a prediction for exactly 12 months from today."
+    ]
+    
+    hook_types = ["Shock/Surprise", "Contrarian", "Pattern Interrupt", "Curiosity Gap", "Social Proof", "Vulnerability", "Data-Driven"]
+    mandatory_hook = random.choice(hook_types)
+    surprise = random.choice(surprise_elements)
+    
+    # Content DNA Shuffler (Anti-Fatigue System)
     structural_dna = random.choice(structural_dna_options) if creativity_level >= 0.4 else "Standard Professional Flow"
     
     prompt = f"""**User Input Parameters:**
@@ -349,11 +284,25 @@ def format_generation_prompt(
 
 **STRUCTURAL DNA (CRITICAL FOR VARIETY):**
 > **{structural_dna}**
-> *Apply this specific structural pattern to the generated content to ensure uniqueness.*
+
+**MANDATORY HOOK TYPE FOR THIS POST:**
+> **{mandatory_hook}**
+
+**SURPRISE ELEMENT (MANDATORY):**
+> **{surprise}**
+
+**STYLE OVERRIDE (USER SPECIFIED):**
+> **{custom_instructions or "None"}**
+> *If instructions are provided, they take absolute priority over all other stylistic rules.*
 
 **VIRAL CONTENT GENERATION INSTRUCTIONS:**
 
-1. **SELECT VIRAL HOOK** (Mandatory - First Line):
+1. **LENGTH ENFORCEMENT**:
+   - Aim for EXACTLY {target_word_count} words. 
+   - I will count them. If you are off by more than 10%, the post will be rejected.
+   - Do not use filler to reach the count; use meaningful, punchy insights.
+
+2. **SELECT VIRAL HOOK** (Mandatory - First Line):
    Choose the most appropriate hook type for this topic:
    - Shock/Surprise (for unexpected results/failures)
    - Contrarian (for challenging common beliefs)
@@ -456,6 +405,36 @@ Keep your analysis concise and actionable."""
     )
 
 
+def call_llm_for_research_brief(
+    topic: str,
+    news_content: str
+) -> Optional[str]:
+    """
+    Generate a research briefing with key insights and viral hook ideas.
+    """
+    system_prompt = """You are an elite Research Strategist. Your goal is to analyze current news and extract 
+    highly viral, human-centric insights for LinkedIn. Avoid AI slop."""
+    
+    user_prompt = f"""TOPIC: {topic}
+    NEWS DATA:
+    {news_content}
+    
+    Based on the news above, provide:
+    1. **Factual Summary per Source**: For each article, provide a 1-sentence summary focused ONLY on facts and data (e.g., "$3B investment", "Product X launched"). DO NOT ASSUME. If data is missing, state only the core event.
+    2. **The Core Trend**: What is actually happening right now?
+    3. **3 Counter-Intuitive Insights**: What do most people miss?
+    4. **3 Viral Hook Ideas**: Write 3 hooks (under 12 words each) in "Shock", "Contrarian", and "Pattern Interrupt" styles.
+    
+    STRICT: No slop words and ZERO assumptions. If the news doesn't provide a data point, don't mention one."""
+    
+    return call_openrouter(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        max_tokens=800,
+        temperature=0.7
+    )
+
+
 def verify_factual_accuracy(
     generated_content: str,
     original_context: str
@@ -515,3 +494,30 @@ Return JSON format: {{ "is_accurate": boolean, "issues": [list of strings], "sug
     except Exception as e:
         print(f"Verification error: {str(e)}")
         return {"is_accurate": True, "issues": [], "suggestion": None}  # Fail open on error
+
+
+def call_llm_for_image_prompt(post_content: str) -> Optional[str]:
+    """
+    Generate a professional LinkedIn-optimized image prompt based on the post content.
+    Balanced for token management and high-quality visual results.
+    """
+    system_prompt = """You are a professional Creative Director specializing in LinkedIn aesthetics.
+    Your task: Create a CONCISE (max 50 words) image generation prompt for Midjourney/DALL-E based on a LinkedIn post.
+    
+    Aesthetic Guidelines:
+    - Corporate-modern, tech-forward, but human-centric.
+    - High-quality: Glassmorphism, soft gradients, natural lighting, 8k resolution.
+    - Professional settings: Modern offices, collaborative spaces, or abstract conceptual art.
+    - Diverse representations.
+    
+    Output Format:
+    Only the prompt text. No quotes, no intro."""
+    
+    user_prompt = f"Create a professional image prompt for this post content:\n\n{post_content}"
+    
+    return call_openrouter(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        max_tokens=150,
+        temperature=0.6
+    )

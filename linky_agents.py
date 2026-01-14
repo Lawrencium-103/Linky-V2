@@ -1,5 +1,5 @@
 """
-Linky Agents - LangGraph State Machine
+LinkyGen Agents - LangGraph State Machine
 Implements the agentic workflow for LinkedIn content generation
 """
 
@@ -39,6 +39,8 @@ class LinkyState(TypedDict):
     final_linkedin_post: Optional[str]
     status_message: Optional[str]
     error_message: Optional[str]
+    custom_instructions: Optional[str] # New: Global style overrides
+    image_prompt: Optional[str] # New: Professional image generation prompt
 
 
 def retrieve_information(state: LinkyState) -> LinkyState:
@@ -76,17 +78,17 @@ def retrieve_information(state: LinkyState) -> LinkyState:
         if NEWS_API_KEY:
             try:
                 if api_country:
-                    # Specific country search
+                    # Specific country search - Headlines first for big org news
                     url = f"https://newsapi.org/v2/top-headlines?q={topic}&country={api_country}&apiKey={NEWS_API_KEY}"
                     response = requests.get(url, timeout=5)
                     
                     # Fallback to everything if strict country search fails
                     if response.status_code == 200 and response.json().get("totalResults", 0) == 0:
-                        url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=relevancy&apiKey={NEWS_API_KEY}"
+                        url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=popularity&apiKey={NEWS_API_KEY}"
                         response = requests.get(url, timeout=5)
                 else:
-                    # Global search (Everything)
-                    url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=relevancy&apiKey={NEWS_API_KEY}"
+                    # Global search - Popularity first for viral potential
+                    url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=popularity&apiKey={NEWS_API_KEY}"
                     response = requests.get(url, timeout=5)
 
                 if response.status_code == 200:
@@ -124,6 +126,30 @@ def retrieve_information(state: LinkyState) -> LinkyState:
         state["error_message"] = f"Error retrieving info: {str(e)}"
         state["latest_news_and_stats"] = "Error fetching news."
         return state
+
+
+def research_topic(topic: str, region: str = "Global (International)", user_country: str = "us") -> dict:
+    """
+    Standalone research function for the Instant Research tab.
+    """
+    state = {
+        "topic": topic,
+        "target_region": region,
+        "user_country": user_country,
+        "source_links": []
+    }
+    
+    # Run the retrieval node
+    state = retrieve_information(state)
+    
+    # Generate the research brief
+    if state.get("latest_news_and_stats") and state["latest_news_and_stats"] != "No live news access configured. Using general knowledge.":
+        brief = llm_utils.call_llm_for_research_brief(topic, state["latest_news_and_stats"])
+        state["research_brief"] = brief
+    else:
+        state["research_brief"] = "No specific news found to generate a brief."
+        
+    return state
 
 
 def analyze_content(state: LinkyState) -> LinkyState:
@@ -200,7 +226,8 @@ def generate_content(state: LinkyState) -> LinkyState:
             target_word_count=state["target_word_count"],
             engagement_level=state["engagement_level"],
             narrative_patterns=state["narrative_patterns"],
-            creativity_level=creativity
+            creativity_level=creativity,
+            custom_instructions=state.get("custom_instructions", "")
         )
         
         # Call OpenRouter API (estimate tokens based on words: ~1.3 tokens per word)
@@ -326,20 +353,43 @@ def refine_content(state: LinkyState) -> LinkyState:
         word_count = len(refined_post.split())
         target_words = state.get("target_word_count", 200) # Default if missing
         
-        if word_count > target_words * 1.2:
-            # Post is too long, ask LLM to shorten
-            system_prompt = f"You are an expert editor. Shorten the following LinkedIn post to approximately {target_words} words while maintaining its impact and message. Keep all Anti-Slop principles and LinkedIn formatting."
-            user_prompt = f"Shorten this post to ~{target_words} words:\n\n{refined_post}"
+        # Stricter word count enforcement (Iterative Loop)
+        target_words = state.get("target_word_count", 200)
+        attempts = 0
+        max_attempts = 2
+        
+        while attempts < max_attempts:
+            word_count = len(refined_post.split())
+            diff = abs(word_count - target_words) / target_words
             
-            shortened = llm_utils.call_openrouter(
+            if diff <= 0.1: # Within 10% is acceptable for LLM
+                break
+                
+            attempts += 1
+            action = "Shorten" if word_count > target_words else "Expand"
+            state["status_message"] = f"Fixing length ({word_count}/{target_words} words). Attempt {attempts}..."
+            
+            system_prompt = f"""You are a master editor. Your task is to {action.lower()} the provided LinkedIn post to be as close to {target_words} words as possible.
+            CURRENT COUNT: {word_count}
+            TARGET: {target_words}
+            STRICT RULES:
+            - Maintain the EXACT hook and surprise element.
+            - Do not lose the 'LinkyGen' human voice/no-slop rules.
+            - Focus on adding or removing quality insights, not filler."""
+            
+            user_prompt = f"{action} this post to ~{target_words} words:\n\n{refined_post}"
+            
+            adjusted = llm_utils.call_openrouter(
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
-                max_tokens=int(target_words * 2),
-                temperature=0.5
+                max_tokens=int(target_words * 2.5),
+                temperature=0.3 # Lower temperature for precision
             )
             
-            if shortened:
-                refined_post = shortened.replace("```", "").strip()
+            if adjusted:
+                refined_post = adjusted.replace("```", "").strip()
+            else:
+                break # API failure or no adjustment
         
         # Basic Anti-Slop checks (rule-based for MVP)
         if "—" in refined_post:
@@ -349,14 +399,33 @@ def refine_content(state: LinkyState) -> LinkyState:
         refined_post = refined_post.strip()
         
         state["final_linkedin_post"] = refined_post
-        state["status_message"] = "Post ready for publishing!"
+        state["status_message"] = "Post refined and polished."
         return state
         
     except Exception as e:
-        state["error_message"] = f"Error refining content: {str(e)}"
-        state["status_message"] = "Refinement failed, using raw post"
-        # Fallback to raw post
-        state["final_linkedin_post"] = state.get("raw_linkedin_post")
+        state["error_message"] = f"Refinement failed: {str(e)}"
+        return state
+
+
+def generate_image_prompt_node(state: LinkyState) -> LinkyState:
+    """
+    Generate a professional image prompt based on the final post.
+    """
+    try:
+        final_post = state.get("final_linkedin_post")
+        if not final_post:
+            return state
+            
+        state["status_message"] = "Generating professional image prompt..."
+        
+        prompt = llm_utils.call_llm_for_image_prompt(final_post)
+        if prompt:
+            state["image_prompt"] = prompt.strip()
+            
+        return state
+    except Exception as e:
+        print(f"Image prompt generation failed: {str(e)}")
+        # Don't fail the whole workflow for an image prompt
         return state
 
 
@@ -371,21 +440,21 @@ def create_workflow() -> StateGraph:
     workflow = StateGraph(LinkyState)
     
     # Add nodes
-    workflow.add_node("retrieve_information", retrieve_information)
-    workflow.add_node("analyze_content", analyze_content)
-    workflow.add_node("generate_content", generate_content)
-    workflow.add_node("verify_content", verify_content)  # NEW NODE
-    workflow.add_node("refine_content", refine_content)
+    workflow.add_node("retrieve", retrieve_information)
+    workflow.add_node("analyze", analyze_content)
+    workflow.add_node("generate", generate_content)
+    workflow.add_node("verify", verify_content)
+    workflow.add_node("refine", refine_content)
+    workflow.add_node("image_prompt", generate_image_prompt_node)
     
-    # Set entry point
-    workflow.set_entry_point("retrieve_information")
-    
-    # Define edges (sequential flow for MVP)
-    workflow.add_edge("retrieve_information", "analyze_content")
-    workflow.add_edge("analyze_content", "generate_content")
-    workflow.add_edge("generate_content", "verify_content")  # Connect generate -> verify
-    workflow.add_edge("verify_content", "refine_content")    # Connect verify -> refine
-    workflow.add_edge("refine_content", END)
+    # Define edges - The core execution flow
+    workflow.set_entry_point("retrieve")
+    workflow.add_edge("retrieve", "analyze")
+    workflow.add_edge("analyze", "generate")
+    workflow.add_edge("generate", "verify")
+    workflow.add_edge("verify", "refine")
+    workflow.add_edge("refine", "image_prompt")
+    workflow.add_edge("image_prompt", END)
     
     # Compile the graph
     return workflow.compile()
