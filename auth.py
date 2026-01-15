@@ -173,11 +173,6 @@ def show_access_code_screen():
         **Don't have an access code?**
         
         Contact us to get your access code and start creating viral LinkedIn content!
-        
-        **Sample codes for testing:**
-        - LINKY2026A
-        - BETA123456
-        - DEMO789XYZ
         """)
 
 
@@ -231,8 +226,6 @@ def show_email_collection_screen():
                 ✅ **Access code sent to {email}!**
                 
                 Check your inbox for your personal access code.
-                
-                (In demo mode, use any of these codes: LINKY2026A, BETA123456, DEMO789XYZ)
                 """)
                 
                 # Show access code input

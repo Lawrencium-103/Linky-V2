@@ -42,19 +42,18 @@ CREATE TABLE IF NOT EXISTS access_codes (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Insert sample access codes for testing
-INSERT INTO access_codes (code) VALUES
-    ('LINKY2026A'),
-    ('BETA123456'),
-    ('DEMO789XYZ'),
-    ('TEST456ABC'),
-    ('TRIAL12345'),
-    ('INVESTOR01'),
-    ('PREMIUM999'),
-    ('ALPHA00001'),
-    ('FOUNDER777'),
-    ('EARLY88888')
-ON CONFLICT (code) DO NOTHING;
+-- Insert sample access codes for testing (Commented out for security)
+-- INSERT INTO access_codes (code) VALUES
+--     ('LINKY2026A'),
+--     ('BETA123456'),
+--     ('DEMO789XYZ'),
+--     ('TEST456ABC'),
+--     ('TRIAL12345'),
+--     ('INVESTOR01'),
+--     ('PREMIUM999'),
+--     ('ALPHA00001'),
+--     ('FOUNDER777'),
+--     ('EARLY88888');
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id);

@@ -43,7 +43,7 @@ except Exception as e:
 
 # In-memory storage for bypass mode
 _bypass_storage = {
-    "access_codes": ["LINKY2026A", "BETA123456", "DEMO789XYZ", "TEST456ABC", "TRIAL12345"],
+    "access_codes": [],
     "users": {},
     "metrics": {},
     "posts": []
@@ -101,8 +101,8 @@ def validate_access_code(code: str) -> bool:
         if "getaddrinfo" in str(e) or "connection" in str(e).lower():
             enable_bypass()
             return code in _bypass_storage["access_codes"]
-        # Fallback to hardcoded for safety
-        return code in ["LINKY2026A", "BETA123456", "DEMO789XYZ", "TEST456ABC", "TRIAL12345"]
+        # Fallback to empty for safety
+        return False
 
 
 def mark_code_as_used(code: str, user_id: str) -> bool:
@@ -368,14 +368,8 @@ def initialize_database_tables():
         created_at TIMESTAMP DEFAULT NOW()
     );
 
-    -- Insert some sample access codes
-    INSERT INTO access_codes (code) VALUES
-        ('LINKY2026A'),
-        ('BETA123456'),
-        ('DEMO789XYZ'),
-        ('TEST456ABC'),
-        ('TRIAL12345')
-    ON CONFLICT (code) DO NOTHING;
+    -- Insert initial access codes (None by default)
+    -- INSERT INTO access_codes (code) VALUES ('YOUR_CODE_HERE');
     """
     
     return sql_commands

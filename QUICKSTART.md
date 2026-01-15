@@ -11,12 +11,8 @@ Linky V2 now includes a **bypass mode** that lets you test the app immediately w
    streamlit run app.py
    ```
 
-2. **Use any of these access codes:**
-   - `BETA123456`
-   - `LINKY2026A`
-   - `DEMO789XYZ`
-   - `TEST456ABC`
-   - `TRIAL12345`
+2. **Use your professional access code:**
+   Contact the administrator to receive your secure code.
 
 3. **Start generating content!**
 
