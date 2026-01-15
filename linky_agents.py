@@ -77,42 +77,55 @@ def retrieve_information(state: LinkyGenState) -> LinkyGenState:
         # 1. NewsAPI
         if NEWS_API_KEY:
             try:
-                if api_country:
-                    # Specific country search - Headlines first for big org news
-                    url = f"https://newsapi.org/v2/top-headlines?q={topic}&country={api_country}&apiKey={NEWS_API_KEY}"
+                # Validate country code (must be 2 letters and recognized by NewsAPI free tier)
+                valid_api_country = api_country if api_country and len(api_country) == 2 and api_country.lower() != "xx" else None
+                
+                if valid_api_country:
+                    # Specific country search - Headlines first
+                    url = f"https://newsapi.org/v2/top-headlines?q={topic}&country={valid_api_country}&apiKey={NEWS_API_KEY}"
                     response = requests.get(url, timeout=5)
                     
-                    # Fallback to everything if strict country search fails
-                    if response.status_code == 200 and response.json().get("totalResults", 0) == 0:
-                        url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=popularity&apiKey={NEWS_API_KEY}"
+                    # Fallback to everything if strict country search fails or returns nothing
+                    if response.status_code != 200 or response.json().get("totalResults", 0) == 0:
+                        url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=relevancy&apiKey={NEWS_API_KEY}"
                         response = requests.get(url, timeout=5)
                 else:
-                    # Global search - Popularity first for viral potential
+                    # Global search - Try popularity first
                     url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=popularity&apiKey={NEWS_API_KEY}"
                     response = requests.get(url, timeout=5)
+                    
+                    # If popularity is too restrictive, try relevancy
+                    if response.status_code == 200 and response.json().get("totalResults", 0) == 0:
+                        url = f"https://newsapi.org/v2/everything?q={topic}&language=en&sortBy=relevancy&apiKey={NEWS_API_KEY}"
+                        response = requests.get(url, timeout=5)
 
                 if response.status_code == 200:
                     data = response.json()
-                    articles = data.get("articles", [])[:4] # Get top 4
+                    # Filter articles to ensure they have content/titles
+                    articles = [a for a in data.get("articles", []) if a.get("title") and a.get("title") != "[Removed]"][:5]
                     for article in articles:
                         combined_info.append(f"- {article['title']} ({article['source']['name']})")
                         if article.get("url"):
                             source_links.append({"title": article['title'], "url": article['url']})
+                else:
+                    print(f"NewsAPI error response: {response.text}")
             except Exception as e:
-                print(f"NewsAPI error: {e}")
+                print(f"NewsAPI exception: {e}")
 
         # 2. GNews API (Fallback/Supplement)
         if GNEWS_API_KEY and len(combined_info) < 2:
             try:
-                country_param = f"&country={api_country}" if api_country else ""
-                url = f"https://gnews.io/api/v4/search?q={topic}{country_param}&lang=en&max=3&apikey={GNEWS_API_KEY}"
+                valid_api_country = api_country if api_country and len(api_country) == 2 and api_country.lower() != "xx" else None
+                country_param = f"&country={valid_api_country}" if valid_api_country else ""
+                url = f"https://gnews.io/api/v4/search?q={topic}{country_param}&lang=en&max=5&apikey={GNEWS_API_KEY}"
                 response = requests.get(url, timeout=5)
                 if response.status_code == 200:
                     data = response.json()
                     for article in data.get("articles", [])[:3]:
-                        combined_info.append(f"- {article['title']} ({article['source']['name']})")
-                        if article.get("url"):
-                            source_links.append({"title": article['title'], "url": article['url']})
+                        if article.get("title") not in [info.split(" (")[0][2:] for info in combined_info]:
+                            combined_info.append(f"- {article['title']} ({article['source']['name']})")
+                            if article.get("url"):
+                                source_links.append({"title": article['title'], "url": article['url']})
             except Exception as e:
                 print(f"GNews error: {e}")
         
@@ -147,31 +160,34 @@ def research_topic(topic: str, region: str = "Global (International)", user_coun
         state = retrieve_information(state)
     else:
         # Deep Research - Agentic Multi-query approach
+        # Use simpler query expansion to avoid 0 results
         queries = [
             topic,
-            f"{topic} latest trends 2026",
-            f"{topic} statistics and data"
+            f"{topic} news",
+            f"{topic} trends"
         ]
         
         all_info = []
         all_links = []
         seen_urls = set()
         
-        for q in queries:
+        for i, q in enumerate(queries):
+            state["status_message"] = f"Deep Scanning ({i+1}/{len(queries)}): {q}..."
             temp_state = state.copy()
             temp_state["topic"] = q
             temp_state = retrieve_information(temp_state)
             
-            if temp_state.get("latest_news_and_stats"):
-                all_info.append(f"### Results for query: {q}\n{temp_state['latest_news_and_stats']}")
+            if temp_state.get("latest_news_and_stats") and "No specific recent news found" not in temp_state["latest_news_and_stats"]:
+                all_info.append(f"### Research Focus: {q}\n{temp_state['latest_news_and_stats']}")
                 
             for link in temp_state.get("source_links", []):
                 if link["url"] not in seen_urls:
                     all_links.append(link)
                     seen_urls.add(link["url"])
                     
-        state["latest_news_and_stats"] = "\n\n".join(all_info)
+        state["latest_news_and_stats"] = "\n\n".join(all_info) if all_info else "No specific recent news found."
         state["source_links"] = all_links
+        state["status_message"] = f"Deep research complete. Found {len(all_links)} sources."
     
     # Generate the research brief
     if state.get("latest_news_and_stats") and "No live news access configured" not in state["latest_news_and_stats"]:
@@ -182,6 +198,29 @@ def research_topic(topic: str, region: str = "Global (International)", user_coun
         state["research_brief"] = brief
     else:
         state["research_brief"] = "No specific news found to generate a brief. Try a broader topic or check your API keys."
+        
+    return state
+
+
+# Define the nodes for the workflow
+def retrieve_information_node(state: LinkyGenState) -> LinkyGenState:
+    """
+    Wrapper node for retrieve_information that supports Deep mode.
+    """
+    is_deep = state.get("is_deep", False)
+    topic = state["topic"]
+    region = state.get("target_region", "Global (International)")
+    user_country = state.get("user_country", "us")
+    
+    if is_deep:
+        # Re-use the Deep logic from research_topic
+        # (This avoids duplicating the multi-query logic)
+        results = research_topic(topic, region, user_country, is_deep=True)
+        state["latest_news_and_stats"] = results.get("latest_news_and_stats")
+        state["source_links"] = results.get("source_links", [])
+        state["status_message"] = results.get("status_message")
+    else:
+        state = retrieve_information(state)
         
     return state
 
@@ -474,7 +513,7 @@ def create_workflow() -> StateGraph:
     workflow = StateGraph(LinkyGenState)
     
     # Add nodes
-    workflow.add_node("retrieve", retrieve_information)
+    workflow.add_node("retrieve", retrieve_information_node)
     workflow.add_node("analyze", analyze_content)
     workflow.add_node("generate", generate_content)
     workflow.add_node("verify", verify_content)

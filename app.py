@@ -457,6 +457,12 @@ with tab_gen:
                     help="How viral should it be?"
                 )
                 
+                deep_gen = st.toggle(
+                    "🧠 AGENTIC DEEP RESEARCH (POST-GENERATION)",
+                    value=False,
+                    help="If enabled, the AI will perform a deep multi-query strategic scan before writing the post. Takes 20-30s."
+                )
+                
                 narrative_patterns = st.multiselect(
                     "NARRATIVE PATTERNS",
                     options=[
@@ -513,7 +519,8 @@ with tab_gen:
                 "narrative_patterns": narrative_patterns,
                 "target_region": target_region, # Capture region
                 "creativity_level": creativity_level, # Capture current slider value
-                "custom_instructions": custom_instructions # New
+                "custom_instructions": custom_instructions, # New
+                "is_deep": deep_gen
             })
             
             # Show progress
@@ -544,7 +551,8 @@ with tab_gen:
                         "status_message": None,
                         "error_message": None,
                         "custom_instructions": custom_instructions, # New
-                        "image_prompt": None # Initialize
+                        "image_prompt": None, # Initialize
+                        "is_deep": deep_gen
                     }
                     
                     # Check for persistence warning
