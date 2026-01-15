@@ -18,7 +18,7 @@ REQUIRE_ACCESS_CODE = os.getenv("REQUIRE_ACCESS_CODE", "true").lower() == "true"
 def get_user_id() -> str:
     """
     Get or create a unique user ID for the current session.
-    For BYPASS_MODE, return a stable local ID to preserve metrics across refreshes.
+    For BYPASS_MODE (Bypass Database), return a stable local ID to preserve metrics across refreshes.
     """
     # If in bypass database mode, use a stable ID for local development testing
     if os.getenv("BYPASS_DATABASE", "false").lower() == "true":

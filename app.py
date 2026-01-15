@@ -533,7 +533,7 @@ with tab_gen:
                     }
                     
                     # Check for persistence warning
-                    if database.BYPASS_MODE:
+                    if database.is_bypass_active():
                         st.toast("⚠️ Demo Mode: Database disconnected. Stats won't save on refresh.", icon="⚠️")
                     
                     # Execute workflow
