@@ -17,8 +17,8 @@ NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")
 
 
-class LinkyState(TypedDict):
-    """State definition for Linky workflow"""
+class LinkyGenState(TypedDict):
+    """State definition for LinkyGen workflow"""
     topic: str
     custom_content: Optional[str]
     tone: str
@@ -43,7 +43,7 @@ class LinkyState(TypedDict):
     image_prompt: Optional[str] # New: Professional image generation prompt
 
 
-def retrieve_information(state: LinkyState) -> LinkyState:
+def retrieve_information(state: LinkyGenState) -> LinkyGenState:
     """
     Retrieve relevant news, stats, and trends based on TARGET REGION.
     """
@@ -152,7 +152,7 @@ def research_topic(topic: str, region: str = "Global (International)", user_coun
     return state
 
 
-def analyze_content(state: LinkyState) -> LinkyState:
+def analyze_content(state: LinkyGenState) -> LinkyGenState:
     """
     Analyze retrieved content for insights, viral elements, and sentiment.
     
@@ -197,7 +197,7 @@ def analyze_content(state: LinkyState) -> LinkyState:
         return state
 
 
-def generate_content(state: LinkyState) -> LinkyState:
+def generate_content(state: LinkyGenState) -> LinkyGenState:
     """
     Generate the LinkedIn post using the master system prompt.
     
@@ -261,7 +261,7 @@ def generate_content(state: LinkyState) -> LinkyState:
         return state
 
 
-def verify_content(state: LinkyState) -> LinkyState:
+def verify_content(state: LinkyGenState) -> LinkyGenState:
     """
     Verify the generated content for factual accuracy.
     
@@ -326,7 +326,7 @@ def verify_content(state: LinkyState) -> LinkyState:
         return state
 
 
-def refine_content(state: LinkyState) -> LinkyState:
+def refine_content(state: LinkyGenState) -> LinkyGenState:
     """
     Refine and optimize the generated post for Anti-Slop principles and LinkedIn best practices.
     
@@ -407,7 +407,7 @@ def refine_content(state: LinkyState) -> LinkyState:
         return state
 
 
-def generate_image_prompt_node(state: LinkyState) -> LinkyState:
+def generate_image_prompt_node(state: LinkyGenState) -> LinkyGenState:
     """
     Generate a professional image prompt based on the final post.
     """
@@ -432,12 +432,12 @@ def generate_image_prompt_node(state: LinkyState) -> LinkyState:
 # Define the LangGraph workflow
 def create_workflow() -> StateGraph:
     """
-    Create and compile the Linky LangGraph workflow.
+    Create and compile the LinkyGen LangGraph workflow.
     
     Returns:
         Compiled StateGraph application
     """
-    workflow = StateGraph(LinkyState)
+    workflow = StateGraph(LinkyGenState)
     
     # Add nodes
     workflow.add_node("retrieve", retrieve_information)

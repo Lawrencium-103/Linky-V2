@@ -4,7 +4,7 @@ Complete redesign with dark theme, access control, metrics, and social sharing
 """
 
 import streamlit as st
-from linky_agents import app as linky_workflow, LinkyState
+from linky_agents import app as linky_workflow, LinkyGenState
 import time
 import auth
 import database
@@ -508,7 +508,7 @@ with tab_gen:
                 
                 try:
                     # Prepare initial state
-                    initial_state: LinkyState = {
+                    initial_state: LinkyGenState = {
                         "topic": topic,
                         "custom_content": custom_content if custom_content.strip() else None,
                         "tone": tone,

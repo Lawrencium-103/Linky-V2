@@ -1,6 +1,6 @@
 """
 Database Integration with Supabase
-Handles all database operations for Linky V2
+Handles all database operations for LinkyGen V2
 """
 
 import os
