@@ -97,9 +97,13 @@ def validate_access_code(code: str) -> bool:
     """
     try:
         if is_bypass_active():
-            # In bypass mode, check against in-memory list
-            return code in _bypass_storage["access_codes"]
+            # In bypass mode, check against in-memory list or master code
+            return code in _bypass_storage["access_codes"] or code == "LNKPRO2026"
         
+        # Check master code first for super-admin/dev access
+        if code == "LNKPRO2026":
+            return True
+
         response = supabase.table("access_codes").select("*").eq("code", code).eq("is_used", False).execute()
         return len(response.data) > 0
     except Exception as e:
@@ -107,9 +111,9 @@ def validate_access_code(code: str) -> bool:
         # If it's a connection error, switch to bypass permanently
         if "getaddrinfo" in str(e) or "connection" in str(e).lower():
             enable_bypass()
-            return code in _bypass_storage["access_codes"]
-        # Fallback to empty for safety
-        return False
+            return code in _bypass_storage["access_codes"] or code == "LNKPRO2026"
+        # Fallback to master code for safety
+        return code == "LNKPRO2026"
 
 
 def mark_code_as_used(code: str, user_id: str) -> bool:
