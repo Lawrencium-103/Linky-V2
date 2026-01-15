@@ -15,20 +15,31 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-# Temporary bypass mode for testing without database setup
-BYPASS_MODE = os.getenv("BYPASS_DATABASE", "false").lower() == "true"
+# Global state for bypass mode
+_bypass_enabled = os.getenv("BYPASS_DATABASE", "false").lower() == "true"
+
+def is_bypass_active() -> bool:
+    """Check if bypass mode is active."""
+    global _bypass_enabled
+    return _bypass_enabled
+
+def enable_bypass():
+    """Enable bypass mode permanently for this session."""
+    global _bypass_enabled
+    if not _bypass_enabled:
+        print("🔄 Permanently enabling BYPASS_MODE due to connection failure...")
+        _bypass_enabled = True
+        _load_storage()
 
 # Initialize Supabase client
 try:
-    if SUPABASE_URL and SUPABASE_KEY:
+    if SUPABASE_URL and SUPABASE_KEY and not _bypass_enabled:
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     else:
-        # If keys are missing (e.g. during build), default to bypass
-        raise ValueError("Supabase keys missing")
+        enable_bypass()
 except Exception as e:
     print(f"⚠️ Supabase init warning: {str(e)}")
-    print("🔄 Enabling BYPASS_MODE (will attempt connection again when needed)...")
-    BYPASS_MODE = True
+    enable_bypass()
 
 # In-memory storage for bypass mode
 _bypass_storage = {
@@ -63,7 +74,7 @@ def _save_storage():
         print(f"Error saving local storage: {e}")
 
 # Load initial storage
-if BYPASS_MODE:
+if is_bypass_active():
     _load_storage()
 
 
@@ -78,7 +89,7 @@ def validate_access_code(code: str) -> bool:
         True if code is valid and unused, False otherwise
     """
     try:
-        if BYPASS_MODE:
+        if is_bypass_active():
             # In bypass mode, check against in-memory list
             return code in _bypass_storage["access_codes"]
         
@@ -86,7 +97,11 @@ def validate_access_code(code: str) -> bool:
         return len(response.data) > 0
     except Exception as e:
         print(f"Error validating access code: {str(e)}")
-        # Fallback to bypass mode
+        # If it's a connection error, switch to bypass permanently
+        if "getaddrinfo" in str(e) or "connection" in str(e).lower():
+            enable_bypass()
+            return code in _bypass_storage["access_codes"]
+        # Fallback to hardcoded for safety
         return code in ["LINKY2026A", "BETA123456", "DEMO789XYZ", "TEST456ABC", "TRIAL12345"]
 
 
@@ -102,7 +117,7 @@ def mark_code_as_used(code: str, user_id: str) -> bool:
         True if successful, False otherwise
     """
     try:
-        if BYPASS_MODE:
+        if is_bypass_active():
             # In bypass mode, just return True (codes can be reused)
             return True
         
@@ -113,6 +128,8 @@ def mark_code_as_used(code: str, user_id: str) -> bool:
         return True
     except Exception as e:
         print(f"Error marking code as used: {str(e)}")
+        if "connection" in str(e).lower() or "getaddrinfo" in str(e):
+            enable_bypass()
         return False
 
 
@@ -165,7 +182,7 @@ def get_user_metrics(user_id: str) -> Dict[str, int]:
         Dict with metrics (posts_generated, likes_count, shares_count)
     """
     try:
-        if BYPASS_MODE:
+        if is_bypass_active():
             # In bypass mode, use in-memory storage
             if user_id not in _bypass_storage["metrics"]:
                 _bypass_storage["metrics"][user_id] = {
@@ -194,6 +211,9 @@ def get_user_metrics(user_id: str) -> Dict[str, int]:
         
     except Exception as e:
         print(f"Error getting user metrics: {str(e)}")
+        if "connection" in str(e).lower() or "getaddrinfo" in str(e):
+            enable_bypass()
+            return get_user_metrics(user_id)
         return {"posts_generated": 0, "likes_count": 0, "shares_count": 0}
 
 
@@ -210,7 +230,7 @@ def increment_metric(user_id: str, metric_name: str, increment: int = 1) -> bool
         True if successful, False otherwise
     """
     try:
-        if BYPASS_MODE:
+        if is_bypass_active():
             # In bypass mode, update in-memory storage
             metrics = get_user_metrics(user_id)
             metrics[metric_name] = metrics.get(metric_name, 0) + increment
@@ -247,7 +267,7 @@ def save_post(user_id: str, content: str, word_count: int) -> bool:
         True if successful, False otherwise
     """
     try:
-        if BYPASS_MODE:
+        if is_bypass_active():
             # In bypass mode, save to in-memory storage
             _bypass_storage["posts"].append({
                 "user_id": user_id,
@@ -290,7 +310,7 @@ def get_user_post_count(user_id: str) -> int:
         Number of posts generated
     """
     try:
-        if BYPASS_MODE:
+        if is_bypass_active():
             # In bypass mode, count from in-memory storage
             return len([p for p in _bypass_storage["posts"] if p["user_id"] == user_id])
         

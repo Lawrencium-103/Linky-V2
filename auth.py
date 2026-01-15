@@ -102,12 +102,8 @@ def show_access_code_screen():
     post_count = database.get_user_post_count(user_id)
     free_remaining = FREE_USAGE_LIMIT - post_count
     
-    # If user still has free uses, let them through without code
-    if free_remaining > 0 and not st.session_state.get("authenticated", False):
-        st.session_state.authenticated = True
-        st.session_state.is_subscribed = False
-        st.session_state.free_trial = True
-        st.rerun()
+    # If trial is already active, stay in app
+    if st.session_state.get("free_trial", False) and not st.session_state.get("is_subscribed", False):
         return
     
     # If free trial expired, show email collection
@@ -148,16 +144,29 @@ def show_access_code_screen():
             label_visibility="collapsed"
         )
         
-        if st.button("🚀 Unlock LinkyGen", use_container_width=True, type="primary"):
+        if st.button("🚀 Unlock LinkyGen PRO", use_container_width=True, type="primary"):
             if access_code:
                 if authenticate_with_code(access_code.upper()):
-                    st.success("✅ Access granted! Welcome to LinkyGen!")
+                    st.success("✅ PRO Access granted! Welcome to LinkyGen!")
                     st.rerun()
                 else:
                     st.error("❌ Invalid access code. Please try again.")
             else:
                 st.warning("⚠️ Please enter an access code.")
         
+        # Trial option if eligible
+        if free_remaining > 0:
+            st.markdown("""
+            <div style="text-align: center; margin: 1rem 0;">
+                <p style="color: #888; margin-bottom: 0.5rem;">OR</p>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"🆓 Start Free Trial ({free_remaining} uses remaining)", use_container_width=True):
+                st.session_state.authenticated = True
+                st.session_state.is_subscribed = False
+                st.session_state.free_trial = True
+                st.rerun()
+
         st.markdown("---")
         
         st.info("""
