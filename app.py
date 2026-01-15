@@ -386,7 +386,17 @@ with tab_research:
 with tab_gen:
     st.markdown('<h3 style="color: #60efff; margin-bottom: 1rem;">📝 CONTENT CONFIGURATION</h3>', unsafe_allow_html=True)
     
-    # Input form (wrapped in glass panel purely visual, but st.form needs direct access)
+    # Display pre-loaded research links if available (OUTSIDE form)
+    if st.session_state.linky_state.get("source_links"):
+        with st.expander("📚 LOADED RESEARCH SOURCES", expanded=True):
+            for link in st.session_state.linky_state["source_links"]:
+                st.markdown(f"• [{link['title']}]({link['url']})")
+            if st.button("🗑️ Clear Research Data", use_container_width=True, key="clear_res_gen"):
+                st.session_state.linky_state["source_links"] = []
+                st.session_state.linky_state["custom_content"] = ""
+                st.rerun()
+
+    # Input form
     with st.container():
         with st.form("content_form"):
             # Topic input
@@ -413,16 +423,6 @@ with tab_gen:
                 height=100,
                 help="Specify any specific instructions for the AI to follow strictly."
             )
-            
-            # Display pre-loaded research links if available
-            if st.session_state.linky_state.get("source_links"):
-                with st.expander("📚 LOADED RESEARCH SOURCES", expanded=True):
-                    for link in st.session_state.linky_state["source_links"]:
-                        st.markdown(f"• [{link['title']}]({link['url']})")
-                    if st.button("🗑️ Clear Research Data", use_container_width=True):
-                        st.session_state.linky_state["source_links"] = []
-                        st.session_state.linky_state["custom_content"] = ""
-                        st.rerun()
             
             col1, col2 = st.columns(2)
             
