@@ -34,11 +34,18 @@ def enable_bypass():
 # Initialize Supabase client
 try:
     if SUPABASE_URL and SUPABASE_KEY and not _bypass_enabled:
+        # Check connectivity before initializing or set a very short timeout if possible
+        # Supabase-py doesn't have an explicit timeout in create_client, but we can verify
+        # DNS Resolution here to fail fast
+        import socket
+        host = SUPABASE_URL.split("//")[-1].split("/")[0]
+        socket.gethostbyname_ex(host) # This will throw Gaierror fast if unreachable
+        
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     else:
         enable_bypass()
 except Exception as e:
-    print(f"⚠️ Supabase init warning: {str(e)}")
+    print(f"⚠️ Supabase connectivity warning: {str(e)}")
     enable_bypass()
 
 # In-memory storage for bypass mode

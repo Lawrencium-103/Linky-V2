@@ -18,7 +18,16 @@ def get_user_location() -> Dict[str, str]:
     """
     try:
         # Use ipapi.co for geolocation (free tier: 1000 requests/day)
-        response = requests.get("https://ipapi.co/json/", timeout=5)
+        response = requests.get("https://ipapi.co/json/", timeout=3)
+        
+        # Handle rate limiting or other errors immediately
+        if response.status_code == 429:
+            print("⚠️ Geo service rate limit reached. Using Unknown.")
+            return {
+                "country": "Unknown", "country_code": "XX", "city": "Unknown",
+                "timezone": "UTC", "latitude": None, "longitude": None
+            }
+            
         response.raise_for_status()
         data = response.json()
         

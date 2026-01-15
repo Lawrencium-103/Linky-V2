@@ -160,7 +160,9 @@ if "linky_state" not in st.session_state:
         "error_message": None,
         "research_results": None,
         "custom_instructions": "", # New: User custom styles
-        "image_prompt": None # New: Professional image generation prompt
+        "image_prompt": None, # New: Professional image generation prompt
+        "source_links": [], # Added
+        "target_region": "Global (International)" # Added
     }
 
 # Check authentication
@@ -369,6 +371,7 @@ with tab_research:
                 # Extract insights for custom content
                 st.session_state.linky_state["custom_content"] = f"Based on latest research for {res['topic']}:\n{res.get('latest_news_and_stats', '')}"
                 st.session_state.linky_state["target_region"] = research_region
+                st.session_state.linky_state["source_links"] = res.get("source_links", [])
                 # Switch to generation tab (implicitly by state change usually, but we'll show success)
                 st.success("Research loaded into Content Engine! Switch to the 🚀 tab to generate.")
         
@@ -410,6 +413,16 @@ with tab_gen:
                 height=100,
                 help="Specify any specific instructions for the AI to follow strictly."
             )
+            
+            # Display pre-loaded research links if available
+            if st.session_state.linky_state.get("source_links"):
+                with st.expander("📚 LOADED RESEARCH SOURCES", expanded=True):
+                    for link in st.session_state.linky_state["source_links"]:
+                        st.markdown(f"• [{link['title']}]({link['url']})")
+                    if st.button("🗑️ Clear Research Data", use_container_width=True):
+                        st.session_state.linky_state["source_links"] = []
+                        st.session_state.linky_state["custom_content"] = ""
+                        st.rerun()
             
             col1, col2 = st.columns(2)
             
