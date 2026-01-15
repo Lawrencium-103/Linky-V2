@@ -128,26 +128,60 @@ def retrieve_information(state: LinkyGenState) -> LinkyGenState:
         return state
 
 
-def research_topic(topic: str, region: str = "Global (International)", user_country: str = "us") -> dict:
+def research_topic(topic: str, region: str = "Global (International)", user_country: str = "us", is_deep: bool = False) -> dict:
     """
     Standalone research function for the Instant Research tab.
+    Supports 'Deep' mode with multiple queries and agentic analysis.
     """
     state = {
         "topic": topic,
         "target_region": region,
         "user_country": user_country,
-        "source_links": []
+        "source_links": [],
+        "latest_news_and_stats": "",
+        "status_message": "Starting research..."
     }
     
-    # Run the retrieval node
-    state = retrieve_information(state)
+    if not is_deep:
+        # Standard Instant Research - Single pass
+        state = retrieve_information(state)
+    else:
+        # Deep Research - Agentic Multi-query approach
+        queries = [
+            topic,
+            f"{topic} latest trends 2026",
+            f"{topic} statistics and data"
+        ]
+        
+        all_info = []
+        all_links = []
+        seen_urls = set()
+        
+        for q in queries:
+            temp_state = state.copy()
+            temp_state["topic"] = q
+            temp_state = retrieve_information(temp_state)
+            
+            if temp_state.get("latest_news_and_stats"):
+                all_info.append(f"### Results for query: {q}\n{temp_state['latest_news_and_stats']}")
+                
+            for link in temp_state.get("source_links", []):
+                if link["url"] not in seen_urls:
+                    all_links.append(link)
+                    seen_urls.add(link["url"])
+                    
+        state["latest_news_and_stats"] = "\n\n".join(all_info)
+        state["source_links"] = all_links
     
     # Generate the research brief
-    if state.get("latest_news_and_stats") and state["latest_news_and_stats"] != "No live news access configured. Using general knowledge.":
-        brief = llm_utils.call_llm_for_research_brief(topic, state["latest_news_and_stats"])
+    if state.get("latest_news_and_stats") and "No live news access configured" not in state["latest_news_and_stats"]:
+        if is_deep:
+            brief = llm_utils.call_llm_for_deep_research(topic, state["latest_news_and_stats"])
+        else:
+            brief = llm_utils.call_llm_for_research_brief(topic, state["latest_news_and_stats"])
         state["research_brief"] = brief
     else:
-        state["research_brief"] = "No specific news found to generate a brief."
+        state["research_brief"] = "No specific news found to generate a brief. Try a broader topic or check your API keys."
         
     return state
 

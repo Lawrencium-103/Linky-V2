@@ -322,14 +322,29 @@ with tab_research:
                 options=["Global (International)", "North America (US/CA)", "Europe (EU/UK)", "Asia Pacific", "Local (My Location)"],
                 key="research_region_select"
             )
+            
+        research_mode = st.radio(
+            "RESEARCH DEPTH",
+            options=["Instant (Fast, News focus)", "Deep (Agentic, Multi-query, Insight focus)"],
+            index=0,
+            horizontal=True,
+            help="Deep research takes 20-30 seconds but performs multiple searches and rigorous analysis."
+        )
+        
+        is_deep = "Deep" in research_mode
         
         if st.button("🔎 SCAN LATEST NEWS & TRENDS", use_container_width=True):
             if not research_topic_input:
                 st.warning("Please enter a topic to research.")
             else:
-                with st.spinner(f"Scanning the web for {research_topic_input}..."):
+                with st.spinner(f"Running {'Deep' if is_deep else 'Instant'} research for {research_topic_input}..."):
                     from linky_agents import research_topic as run_research
-                    results = run_research(research_topic_input, research_region, location_data.get("country_code", "US"))
+                    results = run_research(
+                        topic=research_topic_input, 
+                        region=research_region, 
+                        user_country=location_data.get("country_code", "US"),
+                        is_deep=is_deep
+                    )
                     st.session_state.linky_state["research_results"] = results
                     st.rerun()
 
@@ -344,7 +359,7 @@ with tab_research:
             st.markdown("#### 📝 STRATEGIC BRIEF")
             st.markdown(f"""
             <div class="glass-panel" style="padding: 1.5rem; background: rgba(96, 239, 255, 0.05);">
-                {res.get('research_brief', 'No brief generated.').replace(chr(10), '<br>')}
+                {str(res.get('research_brief', 'No brief generated.')).replace(chr(10), '<br>')}
             </div>
             """, unsafe_allow_html=True)
             

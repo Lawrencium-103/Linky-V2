@@ -435,6 +435,44 @@ def call_llm_for_research_brief(
     )
 
 
+def call_llm_for_deep_research(
+    topic: str,
+    news_content: str
+) -> Optional[str]:
+    """
+    Generate a highly detailed, strategic research paper based on comprehensive data.
+    """
+    system_prompt = """You are the World's Leading Market Intelligence Agent. 
+    Your task is to synthesize multiple data streams into a 'Deep Research Intelligence Report'.
+    
+    CRITICAL QUALITY RULES:
+    1. NO AI SLOP. Avoid 'landscape', 'tapestry', 'delve', etc.
+    2. QUANTITATIVE FOCUS. Prioritize numbers, percentages, and dollar amounts.
+    3. STRATEGIC DEPTH. Don't just summarize; analyze the 'Second-Order Effects'.
+    4. ACCURACY. If data contradicts, note the discrepancy. Do not hallucinate stats."""
+    
+    user_prompt = f"""TOPIC: {topic}
+    COMPREHENSIVE DATA STREAMS:
+    {news_content}
+    
+    Based on the multi-query data above, produce a Deep Research Report with these sections:
+    1. **Executive Summary**: The single most important takeaway.
+    2. **Verified Raw Data points**: Grouped by category (Market Size, Key Players, Tech Specs, etc.).
+    3. **Strategic Trend Analysis**: How this topic has evolved in the last 6 months and where it's going in the next 12.
+    4. **The 'Contrarian' Truth**: What is the mainstream missing about this?
+    5. **5 Elite Viral Hooks**: Optimized for 'High Engagement' (Shock, Data-Driven, Vulnerable, etc.).
+    6. **Recommended Narrative Patterns**: Which story styles will work best for this specific data?
+    
+    Format with professional markdown. Use tables for data if possible. Keep it punchy and high-signal."""
+    
+    return call_openrouter(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        max_tokens=2500,
+        temperature=0.5
+    )
+
+
 def verify_factual_accuracy(
     generated_content: str,
     original_context: str
