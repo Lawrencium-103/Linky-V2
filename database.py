@@ -23,31 +23,6 @@ def is_bypass_active() -> bool:
     global _bypass_enabled
     return _bypass_enabled
 
-def enable_bypass():
-    """Enable bypass mode permanently for this session."""
-    global _bypass_enabled
-    if not _bypass_enabled:
-        print("🔄 Permanently enabling BYPASS_MODE due to connection failure...")
-        _bypass_enabled = True
-        _load_storage()
-
-# Initialize Supabase client
-try:
-    if SUPABASE_URL and SUPABASE_KEY and not _bypass_enabled:
-        # Check connectivity before initializing or set a very short timeout if possible
-        # Supabase-py doesn't have an explicit timeout in create_client, but we can verify
-        # DNS Resolution here to fail fast
-        import socket
-        host = SUPABASE_URL.split("//")[-1].split("/")[0]
-        socket.gethostbyname_ex(host) # This will throw Gaierror fast if unreachable
-        
-        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-    else:
-        enable_bypass()
-except Exception as e:
-    print(f"⚠️ Supabase connectivity warning: {str(e)}")
-    enable_bypass()
-
 # In-memory storage for bypass mode
 _bypass_storage = {
     "access_codes": [],
@@ -80,7 +55,32 @@ def _save_storage():
     except Exception as e:
         print(f"Error saving local storage: {e}")
 
-# Load initial storage
+def enable_bypass():
+    """Enable bypass mode permanently for this session."""
+    global _bypass_enabled
+    if not _bypass_enabled:
+        print("🔄 Permanently enabling BYPASS_MODE due to connection failure...")
+        _bypass_enabled = True
+        _load_storage()
+
+# Initialize Supabase client
+try:
+    if SUPABASE_URL and SUPABASE_KEY and not _bypass_enabled:
+        # Check connectivity before initializing or set a very short timeout if possible
+        # Supabase-py doesn't have an explicit timeout in create_client, but we can verify
+        # DNS Resolution here to fail fast
+        import socket
+        host = SUPABASE_URL.split("//")[-1].split("/")[0]
+        socket.gethostbyname_ex(host) # This will throw Gaierror fast if unreachable
+        
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    else:
+        enable_bypass()
+except Exception as e:
+    print(f"⚠️ Supabase connectivity warning: {str(e)}")
+    enable_bypass()
+
+# Load initial storage if bypass already active
 if is_bypass_active():
     _load_storage()
 
